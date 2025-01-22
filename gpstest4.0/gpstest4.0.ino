@@ -186,7 +186,6 @@ void play() {  //  Function to play star wars music
 }
 
 
-
 void setup() {
   lcd.init();                     // Initialize the lcd
   lcd.backlight();                // Turn on the LCD screen backlight
@@ -225,7 +224,7 @@ void loop() {
     lcd.print("Connected"); //Print "connected" when the wifi connection is established
   }
   
-  axe();
+  axe();//Accelerometer function
   
   if (gpsSerial.available() > 0) {        // If gps serial is available 
     if (gps.encode(gpsSerial.read())) {   // Read the gps data
@@ -234,7 +233,6 @@ void loop() {
     }
   }
 
-    //axe(); //Accelerometer function
 
   if (digitalRead(5) == LOW) {  // If the button is pressed print pressed in serial
     Serial.println("/////////////////////////////////////////////Button_Pressed ///////////////////////////////////////////////////////"); // Show in serial that the button is pressed
@@ -269,10 +267,4 @@ void loop() {
   //Serial.println(gps.speed.kmph());
 
   status = WiFi.status();  //Update the wifi status
-
 }
-
-
-
-
-
