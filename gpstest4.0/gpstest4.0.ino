@@ -86,111 +86,9 @@ int durations[] = {
 };
 
 
-void axe(){     
-  mpu.update(); // Update the accelerometer 
-  axex = mpu.getAccX(); //Save the value of x acceleration
-  axey = mpu.getAccY(); //Save the value of y acceleration
-  axez = mpu.getAccZ(); //Save the value of z acceleration
-  Serial.print(F("ACCELERO  X: "));Serial.print(axex); //Print in serial ACCELERO  X:  	 
-  Serial.print("\tY: ");Serial.print(axey);             //  Y:
-  Serial.print("\tZ: ");Serial.println(axez);           //  Z:
-  if((abs(axex) > 2) || (abs(axey) >2)) { // If acceleration of x or y axis is more than 2G then show it crashed 
-    //Colission detected
-    ColissionDetected = true; //Change the boolean value of ColissionDetected
-    Serial.println("ALERT!!!! COLISSION DETECTED");//Print in serial "ALERT!!!! COLISSION DETECTED"
-  }
-}
 
-
-void play() {  //  Function to play star wars music
-  int size = sizeof(durations) / sizeof(int);
-  for (int note = 0; note < size; note++) {
-    //To calculate the note duration, take one second divided by the note type.
-    //E.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
-    int duration = 1000 / durations[note];
-    tone(buzzer, melody[note], duration);
-    //To distinguish the notes, set a minimum time between them.
-    //The note's duration + 30% seems to work well:
-    int pauseBetweenNotes = duration * 1.30;
-    delay(pauseBetweenNotes);//Pause between notes
-    noTone(buzzer); // Stop the tone playing
-  }
-}
-
-
-
-void setup() {
-  lcd.init();                 // Initialize the lcd
-  lcd.backlight();            // Turn on the LCD screen backlight
-  pinMode(buzzer, OUTPUT);    // Set buzzer pin as an output
-  pinMode(5, INPUT_PULLUP);   // Button pin as pull_up
-  Serial.begin(9600);         // Start the Arduino hardware serial port at 9600 baud
-  gpsSerial.begin(9600);      // Start the software serial port at the GPS's default baud
-  lcd.setCursor(0, 0);        // Set cursor at 0,0 of screen
-  lHighSpeedActive = false;   // Set initial logic variable of speed as false
-  lAlarmActive = false;       // Set initial logic variables of alarm as false
-  Wire.begin();               // Initialize the wire library
-  byte status = mpu.begin();  //
-  while(status!=0){ }         // While mpu.begin on not
-  mpu.setAccConfig(2);        // Set acceleration measurements to +-8g
-  mpu.calcOffsets(true,true); // Gyro and accelero
-  Serial.println("Done!\n");  // Print in serial that setup is done
-
-}
-
-void loop() {
-
-  if (status != WL_CONNECTED) {  //If the status is not CONNECTED
-    while (status != WL_CONNECTED) { //Do until the status is CONNECTED
-      Serial.println("Attempting to connect to SSID: "); //Print in serial that the device is trying to connect
-      lcd.clear(); //Clear the screen
-      lcd.setCursor(0, 0); //Set cursor at 0,0 of screen
-      lcd.print("Connecting..."); //Print "connecting" when the wifi connection is not established
-      Serial.println(ssid); //Print in serial the ssid
-      play(); //Execute the play function to play music
-      status = WiFi.begin(ssid, pass); //Chagne the status of the wifi
-    }
-    lcd.clear(); //Clear the screen
-    lcd.setCursor(0, 0); //Set cursor at 0,0 of screen
-    lcd.print("Connected"); //Print "connected" when the wifi connection is established
-  }
-  if (gpsSerial.available() > 0) {        // If gps serial is available 
-    if (gps.encode(gpsSerial.read())) {   // Read the gps data
-      displayInfo();                      // Function to display the data on the lcd screen
-      dispatchData();                     // Function to send the data to the server
-    }
-  }
-
-    axe(); //Accelerometer function
-
-  if (digitalRead(5) == LOW) {  // If the button is pressed print pressed in serial
-    Serial.println("/////////////////////////////////////////////Button_Pressed ///////////////////////////////////////////////////////"); // Show in serial that the button is pressed
-    lAlarmActive = false; // Deactivate the alarm
-  }
-
-  if ((gps.speed.kmph() > 50) && (!lHighSpeedActive)) { //If you exceed the speed limit 
-    lHighSpeedActive = true; //Set variable for speeding true
-    lAlarmActive = true; // Activate the alarm
-  }
-
-  if (gps.speed.kmph() < 50) {  //If you under the speed limit
-    lHighSpeedActive = false; //Set variable for speeding false
-    lAlarmActive = false; // Deactivate the alarm
-  }
-
-  if (lAlarmActive) { //If alarm is active
-    tone(buzzer, 1000); //Activate the buzzer (alarm) and play a tone of 1000hz
-    Serial.println("Alarm Active"); //Print in serial "Alarm Active"
-  } else { //or else
-    noTone(buzzer); //Stop the buzzer(alarm)
-    Serial.println("Alarm Inactive"); //Print in serial "Alarm Inactive"
-  }
-
-  status = WiFi.status();  //Update the wifi status
-}
-
-
-void displayInfo() { //Function to display data on the 20x4 lcd screen 
+void displayInfo() { //Function to display data on the 20x4 lcd screen
+ // Serial.println("Updating location");
   if (gps.location.isValid()) {
     lcd.setCursor(0, 0); //Set cursor at 0,0 of screen
     lcd.print("Lat: "); //Print in serial "Lat: "
@@ -208,9 +106,26 @@ void displayInfo() { //Function to display data on the 20x4 lcd screen
   } else {
 
     Serial.println("Location: Not Available");//Serial print not available
-         }
+  }
   //delay(1000);  // Adjust if necessary
 }
+
+
+void axe(){     
+  mpu.update(); // Update the accelerometer 
+  axex = mpu.getAccX(); //Save the value of x acceleration
+  axey = mpu.getAccY(); //Save the value of y acceleration
+  axez = mpu.getAccZ(); //Save the value of z acceleration
+  // Serial.print(F("ACCELERO  X: "));Serial.print(axex); //Print in serial ACCELERO  X:  	 
+  // Serial.print("\tY: ");Serial.print(axey);             //  Y:
+  // Serial.print("\tZ: ");Serial.println(axez);           //  Z:
+  if((abs(axex) > 2) || (abs(axey) >2)) { // If acceleration of x or y axis is more than 2G then show it crashed 
+    //Colission detected
+    ColissionDetected = true; //Change the boolean value of ColissionDetected
+    Serial.println("ALERT!!!! COLISSION DETECTED");//Print in serial "ALERT!!!! COLISSION DETECTED"
+  }
+}
+
 
 void dispatchData() { //Function for sending data on the server as a http post
   JsonDocument doc; //Create a doc object
@@ -253,3 +168,111 @@ void dispatchData() { //Function for sending data on the server as a http post
     Serial.println("connection failed");
   }
 }
+
+
+void play() {  //  Function to play star wars music
+  int size = sizeof(durations) / sizeof(int);
+  for (int note = 0; note < size; note++) {
+    //To calculate the note duration, take one second divided by the note type.
+    //E.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
+    int duration = 1000 / durations[note];
+    tone(buzzer, melody[note], duration);
+    //To distinguish the notes, set a minimum time between them.
+    //The note's duration + 30% seems to work well:
+    int pauseBetweenNotes = duration * 1.30;
+    delay(pauseBetweenNotes);//Pause between notes
+    noTone(buzzer); // Stop the tone playing
+  }
+}
+
+
+
+void setup() {
+  lcd.init();                     // Initialize the lcd
+  lcd.backlight();                // Turn on the LCD screen backlight
+  pinMode(buzzer, OUTPUT);        // Set buzzer pin as an output
+  pinMode(5, INPUT_PULLUP);       // Button pin as pull_up
+  Serial.begin(9600);             // Start the Arduino hardware serial port at 9600 baud
+  gpsSerial.begin(9600);          // Start the software serial port at the GPS's default baud
+  lcd.setCursor(0, 0);            // Set cursor at 0,0 of screen
+  lHighSpeedActive = false;       // Set initial logic variable of speed as false
+  lAlarmActive = false;           // Set initial logic variables of alarm as false
+  Wire.begin();                   // Initialize the wire library
+  byte i2cstatus = mpu.begin();   //
+  while(i2cstatus!=0){ }          // While mpu.begin on not
+  mpu.setAccConfig(2);            // Set acceleration measurements to +-8g
+  mpu.calcOffsets(true,true);     // Gyro and accelero
+  Serial.println("Done!\n");      // Print in serial that setup is done
+
+}
+
+void loop() {
+
+  if (status != WL_CONNECTED) {  //If the status is not CONNECTED
+    while (status != WL_CONNECTED) { //Do until the status is CONNECTED
+      Serial.println("Attempting to connect to SSID: "); //Print in serial that the device is trying to connect
+      lcd.clear(); //Clear the screen
+      lcd.setCursor(0, 0); //Set cursor at 0,0 of screen
+      lcd.print("Connecting..."); //Print "connecting" when the wifi connection is not established
+      Serial.println(ssid); //Print in serial the ssid
+      
+      play(); //Execute the play function to play music
+      status = WiFi.begin(ssid, pass); //Chagne the status of the wifi
+    }
+
+    lcd.clear(); //Clear the screen
+    lcd.setCursor(0, 0); //Set cursor at 0,0 of screen
+    lcd.print("Connected"); //Print "connected" when the wifi connection is established
+  }
+  
+  axe();
+  
+  if (gpsSerial.available() > 0) {        // If gps serial is available 
+    if (gps.encode(gpsSerial.read())) {   // Read the gps data
+      displayInfo();                      // Function to display the data on the lcd screen
+      dispatchData();                     // Function to send the data to the server
+    }
+  }
+
+    //axe(); //Accelerometer function
+
+  if (digitalRead(5) == LOW) {  // If the button is pressed print pressed in serial
+    Serial.println("/////////////////////////////////////////////Button_Pressed ///////////////////////////////////////////////////////"); // Show in serial that the button is pressed
+    lAlarmActive = false; // Deactivate the alarm
+  }
+
+  if ((gps.speed.kmph() > 50) && (!lHighSpeedActive)) { //If you exceed the speed limit 
+    lHighSpeedActive = true; //Set variable for speeding true
+    lAlarmActive = true; // Activate the alarm
+  }
+
+  if (gps.speed.kmph() < 50) {  //If you under the speed limit
+    lHighSpeedActive = false; //Set variable for speeding false
+    lAlarmActive = false; // Deactivate the alarm
+  }
+
+  if (lAlarmActive) { //If alarm is active
+    tone(buzzer, 1000); //Activate the buzzer (alarm) and play a tone of 1000hz
+    Serial.println("Alarm Active"); //Print in serial "Alarm Active"
+  } else { //or else
+    noTone(buzzer); //Stop the buzzer(alarm)
+    //Serial.println("Alarm Inactive"); //Print in serial "Alarm Inactive"
+  }
+
+  //Serial.print("Latitude: ");
+  //Serial.println(gps.location.lat(), 8);
+  //Serial.print("Longitude: ");
+  //Serial.println(gps.location.lng(), 8);
+  //Serial.print("Satellites: ");
+  //Serial.println(gps.satellites.value());
+  //Serial.print("Speed: ");
+  //Serial.println(gps.speed.kmph());
+
+  status = WiFi.status();  //Update the wifi status
+
+}
+
+
+
+
+
